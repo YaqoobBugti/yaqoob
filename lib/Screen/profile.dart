@@ -12,14 +12,11 @@ class Profile extends StatefulWidget {
   @override
   _ProfileState createState() => _ProfileState();
 }
-
 class _ProfileState extends State<Profile> {
-
   TextEditingController name = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController phone = TextEditingController();
   TextEditingController address = TextEditingController();
-
   User classuser;
   File _image;
   String userImage;
@@ -32,7 +29,6 @@ class _ProfileState extends State<Profile> {
     });
   }
   
-
   void inputData() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     final uid = user.uid;

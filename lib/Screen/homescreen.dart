@@ -13,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 class _HomeScreenState extends State<HomeScreen> {
   Food food;
+  String userImage;
   Widget container({String image, String tittle, Function onClick, context}) {
     return Padding(
       padding: EdgeInsets.only(top: 60),
@@ -94,6 +95,17 @@ class _HomeScreenState extends State<HomeScreen> {
             foodName: event['foodName'],
             ratting: event['ratting'],
           );
+        });
+      },
+    );
+    Firestore.instance
+        .collection("user")
+        .document('EVnNyZyfTVSnmllvmey9ByXrNa73')
+        .snapshots()
+        .listen(
+      (event) {
+        setState(() {
+         userImage=event["image Url"];
         });
       },
     );
@@ -227,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: Colors.white,
                             child: CircleAvatar(
                               maxRadius: 46,
-                              child: Image.asset("images/cat.png"),
+                              backgroundImage: NetworkImage(userImage),
                             ),
                           ),
                           SizedBox(
