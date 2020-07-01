@@ -12,7 +12,6 @@ import './login.dart';
 
 class SignUp extends StatefulWidget {
   static Pattern patttern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-
   static Pattern pattern =
       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
   @override
@@ -56,8 +55,8 @@ class _SignUpState extends State<SignUp> {
   final _auth = FirebaseAuth.instance;
   AuthResult authResult;
 
-  RegExp regex = new RegExp(SignUp.pattern);
-  RegExp regExp = new RegExp(SignUp.patttern);
+  RegExp regex =RegExp(SignUp.pattern);
+  RegExp regExp =RegExp(SignUp.patttern);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController fullname = TextEditingController();
   final TextEditingController email = TextEditingController();
@@ -83,10 +82,10 @@ class _SignUpState extends State<SignUp> {
         SnackBar(
           content: Text('All field is emtpy'),
           backgroundColor: Theme.of(context).primaryColor,
-        ),
-      );
+        ),);
       return;
-    } else if (fullname.text.trim().isEmpty || fullname.text.trim() == null) {
+    } 
+    else if (fullname.text.trim().isEmpty || fullname.text.trim() == null) {
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: Text('Full Name is empty'),

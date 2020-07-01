@@ -9,35 +9,44 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Profile extends StatefulWidget {
+  static Pattern pattern =
+      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+  static Pattern patttern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
+
   @override
   _ProfileState createState() => _ProfileState();
 }
+
 class _ProfileState extends State<Profile> {
-  TextEditingController name = TextEditingController();
-  TextEditingController email = TextEditingController();
-  TextEditingController phone = TextEditingController();
-  TextEditingController address = TextEditingController();
+  RegExp regex = RegExp(Profile.pattern);
+  RegExp regExp = RegExp(Profile.patttern);
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  TextEditingController name;
+  TextEditingController email;
+  TextEditingController phone;
+  TextEditingController address;
+  var uid;
   User classuser;
   File _image;
   String userImage;
   bool edit = false;
+
   Future getImage() async {
-    final pickedFile =
-        await ImagePicker().getImage(source: ImageSource.camera);
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
       _image = File(pickedFile.path);
     });
   }
-  
+
   void inputData() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    final uid = user.uid;
-     print(uid.toString());
+    uid = user.uid;
+    print(uid.toString());
     Firestore.instance.collection("user").document(uid).snapshots().listen(
       (event) {
         print(event["username"]);
-        userImage=event["image Url"];
-       
+        userImage = event["image Url"];
+
         setState(
           () {
             classuser = User(
@@ -45,9 +54,9 @@ class _ProfileState extends State<Profile> {
               contect: event['contect'],
               email: event['email'],
               fullname: event['username'],
-              gender:event["gender"],
+              gender: event["gender"],
               image: null,
-              password: "a",
+              password: null,
             );
           },
         );
@@ -59,6 +68,98 @@ class _ProfileState extends State<Profile> {
   void initState() {
     inputData();
     super.initState();
+  }
+
+  void userDataUpdate()  {
+    Firestore.instance
+        .collection("user")
+        .document(uid)
+        .updateData({
+      "username": name.text,
+      "email": email.text,
+      "address": address.text,
+      "contect": phone.text,
+    });
+  }
+
+  function() {
+    if (name.text.isEmpty &&
+        email.text.isEmpty &&
+        phone.text.isEmpty &&
+        address.text.isEmpty) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('All field is emtpy'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    }
+    if (name.text.trim().isEmpty || name.text.trim() == null) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Full Name is empty'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    }
+    if (email.text.trim().isEmpty || email.text.trim() == null) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Email is empty'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    } else if (!regex.hasMatch(email.text)) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Please Enter Valid Email'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    }
+    if (phone.text.trim().isEmpty || phone.text.trim() == null) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('phone is empty'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    } else if (phone.text.length > 11) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Phone Number Must be eleven'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    } else if (!regExp.hasMatch(phone.text)) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Please enter valid mobile number'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      return;
+    }
+    if (address.text.trim().isEmpty || address.text.trim() == null) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Address is empty'),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+    
+    } else {
+      setState(() {
+        edit = false;
+        userDataUpdate();
+      });
+    }
   }
 
   Widget textsContainer(String text) {
@@ -77,13 +178,13 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  @override
   Widget build(BuildContext context) {
-    email=TextEditingController(text:classuser.email);
-     name=TextEditingController(text:classuser.fullname);
-      phone=TextEditingController(text:classuser.contect);
-       address=TextEditingController(text:classuser.address);
+    email = TextEditingController(text: classuser.email);
+    name = TextEditingController(text: classuser.fullname);
+    phone = TextEditingController(text: classuser.contect);
+    address = TextEditingController(text: classuser.address);
     return Scaffold(
+      key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
           elevation: 0.0,
@@ -175,7 +276,9 @@ class _ProfileState extends State<Profile> {
                               buttoncolors: Theme.of(context).primaryColor,
                               textcolor: Colors.white,
                               tittle: "Update",
-                              whenpress: () {},
+                              whenpress: () {
+                                function();
+                              },
                             )
                           ],
                         )
@@ -204,7 +307,8 @@ class _ProfileState extends State<Profile> {
                     maxRadius: 75,
                     backgroundImage: _image == null
                         ? NetworkImage(userImage)
-                        : FileImage(_image), //image == null ?//:FileImage(image),
+                        : FileImage(
+                            _image), //image == null ?//:FileImage(image),
                   ),
                 ),
                 Padding(
