@@ -14,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Food food;
   String userImage;
+  var uid;
   Widget container({String image, String tittle, Function onClick, context}) {
     return Padding(
       padding: EdgeInsets.only(top: 60),
@@ -78,8 +79,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  @override
+
+  
+  void inputData() async {
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    uid = user.uid;
+    print(uid.toString());
+    Firestore.instance.collection("user").document(uid).snapshots().listen(
+      (event) {
+        print(event["username"]);
+        userImage = event["image Url"];
+      },
+    );
+  }
+  
+  
   void initState() {
+    inputData();
     super.initState();
     Firestore.instance
         .collection("food")
@@ -98,17 +114,17 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       },
     );
-    Firestore.instance
-        .collection("user")
-        .document('EVnNyZyfTVSnmllvmey9ByXrNa73')
-        .snapshots()
-        .listen(
-      (event) {
-        setState(() {
-         userImage=event["image Url"];
-        });
-      },
-    );
+    // Firestore.instance
+    //     .collection("user")
+    //     .document('EVnNyZyfTVSnmllvmey9ByXrNa73')
+    //     .snapshots()
+    //     .listen(
+    //   (event) {
+    //     setState(() {
+    //      userImage=event["image Url"];
+    //     });
+    //   },
+    // );
   }
 
   Widget build(BuildContext context) {

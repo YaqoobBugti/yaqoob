@@ -6,6 +6,7 @@ import '../Widgets/Button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Profile extends StatefulWidget {
@@ -28,9 +29,10 @@ class _ProfileState extends State<Profile> {
   var uid;
   User classuser;
   File _image;
+  AuthResult authResult;
+  bool gender = true;
   String userImage;
   bool edit = false;
-
   Future getImage() async {
     final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
@@ -46,7 +48,6 @@ class _ProfileState extends State<Profile> {
       (event) {
         print(event["username"]);
         userImage = event["image Url"];
-
         setState(
           () {
             classuser = User(
@@ -70,15 +71,14 @@ class _ProfileState extends State<Profile> {
     super.initState();
   }
 
-  void userDataUpdate()  {
-    Firestore.instance
-        .collection("user")
-        .document(uid)
-        .updateData({
+  void userDataUpdate() async {
+    Firestore.instance.collection("user").document(uid).updateData({
       "username": name.text,
       "email": email.text,
       "address": address.text,
       "contect": phone.text,
+      "gender": gender ? "Male" : "Female",
+      // "imageUrl":
     });
   }
 
@@ -153,7 +153,6 @@ class _ProfileState extends State<Profile> {
           backgroundColor: Theme.of(context).primaryColor,
         ),
       );
-    
     } else {
       setState(() {
         edit = false;
@@ -262,7 +261,29 @@ class _ProfileState extends State<Profile> {
                               keyboard: TextInputType.text,
                               controller: phone,
                             ),
-                            textsContainer(classuser.gender),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  gender = !gender;
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.only(top: 24, left: 17),
+                                width: double.infinity,
+                                height: 66,
+                                decoration: BoxDecoration(
+                                  color: Color(0xfffef6fa),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Text(
+                                  gender ? "Male" : "Female",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // textsContainer(classuser.gender),
                             MYTextField(
                               hintText: "16,floor,mountainview,ca,USA",
                               obscuretext: false,
@@ -324,6 +345,7 @@ class _ProfileState extends State<Profile> {
                         )
                       : Container(),
                 ),
+                
               ],
             ),
           ),
