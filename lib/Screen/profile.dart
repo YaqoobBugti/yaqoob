@@ -6,7 +6,6 @@ import '../Widgets/Button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Profile extends StatefulWidget {
@@ -29,7 +28,6 @@ class _ProfileState extends State<Profile> {
   var uid;
   User classuser;
   File _image;
-  AuthResult authResult;
   bool gender = true;
   String userImage;
   bool edit = false;
@@ -43,10 +41,8 @@ class _ProfileState extends State<Profile> {
   void inputData() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     uid = user.uid;
-    print(uid.toString());
     Firestore.instance.collection("user").document(uid).snapshots().listen(
       (event) {
-        print(event["username"]);
         userImage = event["image Url"];
         setState(
           () {
@@ -78,7 +74,6 @@ class _ProfileState extends State<Profile> {
       "address": address.text,
       "contect": phone.text,
       "gender": gender ? "Male" : "Female",
-      // "imageUrl":
     });
   }
 
@@ -225,132 +220,135 @@ class _ProfileState extends State<Profile> {
             "Profiles",
             style: TextStyle(fontSize: 25),
           )),
-      body: Stack(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: Theme.of(context).primaryColor,
+      body: StreamBuilder(
+        stream:Firestore.instance.collection("user").document(uid).snapshots() ,
+        builder: (context, snapshot) {
+        return Stack(
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Container(
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 30),
-                  child: edit == true
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            MYTextField(
-                              hintText: "Brie Larson",
-                              obscuretext: false,
-                              keyboard: TextInputType.text,
-                              controller: name,
-                            ),
-                            MYTextField(
-                              hintText: "BrieLarson@gmail.com",
-                              obscuretext: false,
-                              keyboard: TextInputType.text,
-                              controller: email,
-                            ),
-                            MYTextField(
-                              hintText: "+13257788963",
-                              obscuretext: false,
-                              keyboard: TextInputType.text,
-                              controller: phone,
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  gender = !gender;
-                                });
-                              },
-                              child: Container(
-                                padding: EdgeInsets.only(top: 24, left: 17),
-                                width: double.infinity,
-                                height: 66,
-                                decoration: BoxDecoration(
-                                  color: Color(0xfffef6fa),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: Text(
-                                  gender ? "Male" : "Female",
-                                  style: TextStyle(
-                                    fontSize: 18,
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    padding: EdgeInsets.only(left: 20, right: 20, top: 30),
+                    child: edit == true
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              MYTextField(
+                                hintText: "Brie Larson",
+                                obscuretext: false,
+                                keyboard: TextInputType.text,
+                                controller: name,
+                              ),
+                              MYTextField(
+                                hintText: "BrieLarson@gmail.com",
+                                obscuretext: false,
+                                keyboard: TextInputType.text,
+                                controller: email,
+                              ),
+                              MYTextField(
+                                hintText: "+13257788963",
+                                obscuretext: false,
+                                keyboard: TextInputType.text,
+                                controller: phone,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    gender = !gender;
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.only(top: 24, left: 17),
+                                  width: double.infinity,
+                                  height: 66,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xfffef6fa),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Text(
+                                    gender ? "Male" : "Female",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            // textsContainer(classuser.gender),
-                            MYTextField(
-                              hintText: "16,floor,mountainview,ca,USA",
-                              obscuretext: false,
-                              keyboard: TextInputType.text,
-                              controller: address,
-                            ),
-                            Container(
-                              width: 350,
-                            ),
-                            Button(
-                              buttoncolors: Theme.of(context).primaryColor,
-                              textcolor: Colors.white,
-                              tittle: "Update",
-                              whenpress: () {
-                                function();
-                              },
-                            )
-                          ],
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            textsContainer(classuser.fullname),
-                            textsContainer(classuser.email),
-                            textsContainer(classuser.contect),
-                            textsContainer(classuser.gender),
-                            textsContainer(classuser.address),
-                          ],
-                        ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 140, top: 50),
-            child: Stack(
-              children: <Widget>[
-                CircleAvatar(
-                  maxRadius: 80,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    maxRadius: 75,
-                    backgroundImage: _image == null
-                        ? NetworkImage(userImage)
-                        : FileImage(
-                            _image), //image == null ?//:FileImage(image),
+                              // textsContainer(classuser.gender),
+                              MYTextField(
+                                hintText: "16,floor,mountainview,ca,USA",
+                                obscuretext: false,
+                                keyboard: TextInputType.text,
+                                controller: address,
+                              ),
+                              Container(
+                                width: 350,
+                              ),
+                              Button(
+                                buttoncolors: Theme.of(context).primaryColor,
+                                textcolor: Colors.white,
+                                tittle: "Update",
+                                whenpress: () {
+                                  function();
+                                },
+                              )
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              textsContainer(classuser.fullname),
+                              textsContainer(classuser.email),
+                              textsContainer(classuser.contect),
+                              textsContainer(classuser.gender),
+                              textsContainer(classuser.address),
+                            ],
+                          ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 125, top: 100),
-                  child: edit == true
-                      ? CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                getImage();
-                              }),
-                        )
-                      : Container(),
-                ),
-                
               ],
             ),
-          ),
-        ],
-      ),
+            Padding(
+              padding: const EdgeInsets.only(left: 140, top: 50),
+              child: Stack(
+                children: <Widget>[
+                  CircleAvatar(
+                    maxRadius: 80,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      maxRadius: 75,
+                      backgroundImage: _image == null
+                          ? NetworkImage(userImage)
+                          : FileImage(
+                              _image), //image == null ?//:FileImage(image),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 125, top: 100),
+                    child: edit == true
+                        ? CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  getImage();
+                                }),
+                          )
+                        : Container(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Color(0xffff3ea5),
       ),
       debugShowCheckedModeBanner: false,
+  
       home: StreamBuilder(
           stream: FirebaseAuth.instance.onAuthStateChanged,
           builder: (ctx, userSnapshot) {

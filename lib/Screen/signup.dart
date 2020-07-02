@@ -43,6 +43,7 @@ class _SignUpState extends State<SignUp> {
   var lodding =false;
   bool gender=true;
   File _image;
+  
   Future getImage() async {
     final pickedFile =
         await ImagePicker().getImage(source: ImageSource.gallery);
@@ -345,10 +346,7 @@ class _SignUpState extends State<SignUp> {
                             lodding =false;
                           });
                         },
-                        
-                      ),
-                    
-                       
+                      ), 
                     ],
                   ),
                 ),
