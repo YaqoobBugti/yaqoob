@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import './cartscreen.dart';
 import './catagory.dart';
 import './profile.dart';
@@ -8,12 +9,14 @@ import './detailscreen.dart';
 import './about.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Model/food.dart';
+
 class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
+
 class _HomeScreenState extends State<HomeScreen> {
-  Food food;
-  String userImage;
+  Food foodpasta;
+  Food foodchicken;
   var uid;
   Widget container({String image, String tittle, Function onClick, context}) {
     return Padding(
@@ -80,54 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  
   void inputData() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     uid = user.uid;
-    print(uid.toString());
-    Firestore.instance.collection("user").document(uid).snapshots().listen(
-      (event) {
-        print(event["username"]);
-        userImage = event["image Url"];
-      },
-    );
-  }
-  
-  
-  void initState() {
-    inputData();
-    super.initState();
-    Firestore.instance
-        .collection("food")
-        .document('uWdh10cVO6bZNDb9OYh0')
-        .snapshots()
-        .listen(
-      (event) {
-        setState(() {
-          food = Food(
-            price: event['foodPrice'],
-            image: event['image'],
-            foodsubTittle: event['foodsubTittle'],
-            foodName: event['foodName'],
-            ratting: event['ratting'],
-          );
-        });
-      },
-    );
-    // Firestore.instance
-    //     .collection("user")
-    //     .document('EVnNyZyfTVSnmllvmey9ByXrNa73')
-    //     .snapshots()
-    //     .listen(
-    //   (event) {
-    //     setState(() {
-    //      userImage=event["image Url"];
-    //     });
-    //   },
-    // );
   }
 
   Widget build(BuildContext context) {
+    inputData();
     return Scaffold(
       drawer: Drawer(
         child: SafeArea(
@@ -224,219 +186,271 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icons.notifications,
                 size: 33,
               ),
-              onPressed: () {
-                Firestore.instance
-                    .collection('food')
-                    .snapshots()
-                    .listen((event) {
-                  event.documents.forEach((element) {
-                    print(element["foodtitle"]);
-                  });
-                });
-              })
+              onPressed: () {})
         ],
       ),
-      body: Stack(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: Theme.of(context).primaryColor,
-                  child: Container(
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 50),
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      // color: Colors.red,
-                      child: Row(
-                        children: <Widget>[
-                          CircleAvatar(
-                            maxRadius: 50,
-                            backgroundColor: Colors.white,
-                            child: CircleAvatar(
-                              maxRadius: 46,
-                              backgroundImage: NetworkImage(userImage),
+      body: StreamBuilder(
+        stream: Firestore.instance.collection("food").snapshots(),
+        builder: (contact, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          foodpasta = Food(
+            price: snapshot.data.documents[1]['foodPrice'],
+            image: snapshot.data.documents[1]['image'],
+            foodsubTittle: snapshot.data.documents[1]['foodsubTittle'],
+            foodName: snapshot.data.documents[1]['foodName'],
+            ratting: snapshot.data.documents[1]['ratting'],
+          );
+
+          return StreamBuilder(
+            stream: Firestore.instance.collection("food").snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              foodchicken = Food(
+                price: snapshot.data.documents[0]['foodPrice'],
+                image: snapshot.data.documents[0]['image'],
+                foodsubTittle: snapshot.data.documents[0]['foodsubTittle'],
+                foodName: snapshot.data.documents[0]['foodName'],
+                ratting: snapshot.data.documents[0]['ratting'],
+              );
+              return Stack(
+                children: <Widget>[
+                  Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          color: Theme.of(context).primaryColor,
+                          child: Container(
+                            child: Container(
+                              margin: EdgeInsets.only(bottom: 50),
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              // color: Colors.red,
+                              child: Row(
+                                children: <Widget>[
+                                  CircleAvatar(
+                                    maxRadius: 50,
+                                    backgroundColor: Colors.white,
+                                    child: CircleAvatar(
+                                      maxRadius: 46,
+                                      backgroundImage:
+                                          AssetImage("images/cat.png"),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 20,
+                                  ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        "Have you upset",
+                                        style: TextStyle(
+                                            fontSize: 22,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(
+                                        height: MediaQuery.of(context)
+                                                .viewPadding
+                                                .top *
+                                            0.2,
+                                      ),
+                                      Text(
+                                        "stomatch?",
+                                        style: TextStyle(
+                                            fontSize: 22,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                           ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          color: Color(0xfff2f2f2),
+                          width: double.infinity,
+                          child: Column(
                             children: <Widget>[
-                              Text(
-                                "Have you upset",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: <Widget>[
+                                    container(
+                                        context: context,
+                                        image: "images/pizza.png",
+                                        tittle: "Pizza",
+                                        onClick: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Catagory()));
+                                        }),
+                                    container(
+                                        context: context,
+                                        image: "images/salads.png",
+                                        tittle: "Salads",
+                                        onClick: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Catagory()));
+                                        }),
+                                    container(
+                                        context: context,
+                                        image: "images/pasta.png",
+                                        tittle: "Food",
+                                        onClick: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      Catagory()));
+                                        }),
+                                  ],
+                                ),
                               ),
-                              SizedBox(
-                                height: MediaQuery.of(context).viewPadding.top *
-                                    0.2,
+                              Container(
+                                height: 60,
+                                margin: EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      "Featured",
+                                      style: TextStyle(
+                                          color: Color(0xff04d4ee),
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      "View All",
+                                      style: TextStyle(
+                                          color: Color(0xff04d4ee),
+                                          fontSize: 19),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              Text(
-                                "stomatch?",
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: <Widget>[
+                                    CircleContainer(
+                                      image: foodpasta.image,
+                                      text: foodpasta.foodName,
+                                      subtext: foodpasta.foodsubTittle,
+                                      price: foodpasta.price,
+                                      ratting: foodpasta.ratting,
+                                      onPress: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    DetailScreen(
+                                                      foodName:
+                                                          foodpasta.foodName,
+                                                      image: foodpasta.image,
+                                                      price: foodpasta.price,
+                                                      foodsubtittle: foodpasta
+                                                          .foodsubTittle,
+                                                    )));
+                                      },
+                                    ),
+                                    CircleContainer(
+                                      image: foodchicken.image,
+                                      text: foodchicken.foodName,
+                                      subtext: foodchicken.foodsubTittle,
+                                      price: foodchicken.price,
+                                      ratting: foodchicken.ratting,
+                                      onPress: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => DetailScreen(
+                                              foodName: foodchicken.foodName,
+                                              image: foodchicken.image,
+                                              price: foodchicken.price,
+                                              foodsubtittle:
+                                                  foodchicken.foodsubTittle,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    CircleContainer(
+                                      image: foodchicken.image,
+                                      text: foodchicken.foodName,
+                                      subtext: foodchicken.foodsubTittle,
+                                      price: foodchicken.price,
+                                      ratting: foodchicken.ratting,
+                                      onPress: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => DetailScreen(
+                                              foodName: foodchicken.foodName,
+                                              image: foodchicken.image,
+                                              price: foodchicken.price,
+                                              foodsubtittle:
+                                                  foodchicken.foodsubTittle,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Container(
-                  color: Color(0xfff2f2f2),
-                  width: double.infinity,
-                  child: Column(
-                    children: <Widget>[
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: <Widget>[
-                            container(
-                                context: context,
-                                image: "images/pizza.png",
-                                tittle: "Pizza",
-                                onClick: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => Catagory()));
-                                }),
-                            container(
-                                context: context,
-                                image: "images/salads.png",
-                                tittle: "Salads",
-                                onClick: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => Catagory()));
-                                }),
-                            container(
-                                context: context,
-                                image: "images/pasta.png",
-                                tittle: "Food",
-                                onClick: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => Catagory()));
-                                }),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        height: 60,
-                        margin: EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text(
-                              "Featured",
-                              style: TextStyle(
-                                  color: Color(0xff04d4ee),
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "View All",
-                              style: TextStyle(
-                                  color: Color(0xff04d4ee), fontSize: 19),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: <Widget>[
-                            CircleContainer(
-                              image: food.image,
-                              text: food.foodName,
-                              subtext: food.foodsubTittle,
-                              price: food.price,
-                              ratting: food.ratting,
-                              onPress: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => DetailScreen(
-                                          foodName: food.foodName,
-                                          image: food.image,
-                                          price: food.price,
-                                          foodsubtittle: food.foodsubTittle,
-                                        )));
-                              },
-                            ),
-                            CircleContainer(
-                              image: food.image,
-                              text: food.foodsubTittle,
-                              subtext: food.foodsubTittle,
-                              price: food.price,
-                              ratting: food.ratting,
-                              onPress: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => DetailScreen(
-                                          foodName: food.foodName,
-                                          image: food.image,
-                                          price: food.price,
-                                          foodsubtittle: food.foodsubTittle,
-                                        )));
-                              },
-                            ),
-                            CircleContainer(
-                              image: food.image,
-                              text: food.foodName,
-                              subtext: food.foodsubTittle,
-                              price: food.price,
-                              ratting: food.ratting,
-                              onPress: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => DetailScreen(
-                                          foodName: food.foodName,
-                                          image: food.image,
-                                          price: food.price,
-                                          foodsubtittle: food.foodsubTittle,
-                                        )));
-                              },
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 155,
-            left: 20,
-            right: 20,
-            child: Container(
-              child: TextField(
-                decoration: InputDecoration(
-                  suffixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  hintText: 'Want to search anything',
-                  filled: true,
-                  fillColor: Colors.white,
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                      borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                      borderSide: BorderSide.none),
-                ),
-              ),
-            ),
-          ),
-        ],
+                   Positioned(
+                      top: 155,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(
+                              Icons.search,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            hintText: 'Want to search anything',
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10.0)),
+                                borderSide: BorderSide.none),
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10.0)),
+                                borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                    ),   
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 class User{
   String fullname;
-  String email;
+  String  email;
   String password;
   String  contect;
   String address;

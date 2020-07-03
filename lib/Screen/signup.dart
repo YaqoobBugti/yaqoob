@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../Model/user.dart';
+import 'package:path/path.dart' as Path; 
 import './login.dart';
 
 class SignUp extends StatefulWidget {
@@ -40,10 +41,10 @@ Widget alreadyAccount(context) {
 }
 
 class _SignUpState extends State<SignUp> {
-  var lodding =false;
-  bool gender=true;
+  var lodding = false;
+  bool gender = true;
   File _image;
-  
+
   Future getImage() async {
     final pickedFile =
         await ImagePicker().getImage(source: ImageSource.gallery);
@@ -53,11 +54,29 @@ class _SignUpState extends State<SignUp> {
     });
   }
 
+
+    Future<Map<String, String>> uploadFile(File _image) async {
+    String _imagePath = _image.path;
+
+    StorageReference storageReference = FirebaseStorage.instance
+        .ref()
+        .child('images/${Path.basename(_imagePath)}');
+    StorageUploadTask uploadTask = storageReference.putFile(_image);
+    StorageTaskSnapshot task = await uploadTask.onComplete;
+    final String _imageUrl = (await task.ref.getDownloadURL());
+
+    Map<String, String> _downloadData = {
+      'imagePath': _imagePath,
+      'imageUrl': _imageUrl
+    };
+    return _downloadData;
+  }
+
   final _auth = FirebaseAuth.instance;
   AuthResult authResult;
 
-  RegExp regex =RegExp(SignUp.pattern);
-  RegExp regExp =RegExp(SignUp.patttern);
+  RegExp regex = RegExp(SignUp.pattern);
+  RegExp regExp = RegExp(SignUp.patttern);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController fullname = TextEditingController();
   final TextEditingController email = TextEditingController();
@@ -66,8 +85,8 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController all = TextEditingController();
   final TextEditingController adress = TextEditingController();
   function() {
-    if(_image==null){
-        _scaffoldKey.currentState.showSnackBar(
+    if (_image == null) {
+      _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: Text('Profile image is null'),
           backgroundColor: Theme.of(context).primaryColor,
@@ -83,10 +102,10 @@ class _SignUpState extends State<SignUp> {
         SnackBar(
           content: Text('All field is emtpy'),
           backgroundColor: Theme.of(context).primaryColor,
-        ),);
+        ),
+      );
       return;
-    } 
-    else if (fullname.text.trim().isEmpty || fullname.text.trim() == null) {
+    } else if (fullname.text.trim().isEmpty || fullname.text.trim() == null) {
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: Text('Full Name is empty'),
@@ -163,7 +182,7 @@ class _SignUpState extends State<SignUp> {
       return;
     }
   }
-
+  
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -257,21 +276,24 @@ class _SignUpState extends State<SignUp> {
                         keyboard: TextInputType.visiblePassword,
                       ),
                       GestureDetector(
-                        onTap: (){
+                        onTap: () {
                           setState(() {
-                           gender= !gender;
+                            gender = !gender;
                           });
                         },
-                        child:Container(
-                          padding: EdgeInsets.only(top: 24,left: 17),
+                        child: Container(
+                          padding: EdgeInsets.only(top: 24, left: 17),
                           width: double.infinity,
                           height: 66,
                           decoration: BoxDecoration(
-                            color:Color(0xfffef6fa),
+                            color: Color(0xfffef6fa),
                             borderRadius: BorderRadius.circular(10.0),
                           ),
-                        child:Text(gender ? "Male":"Female",style: TextStyle(fontSize: 22),),  
-                        ) ,
+                          child: Text(
+                            gender ? "Male" : "Female",
+                            style: TextStyle(fontSize: 22),
+                          ),
+                        ),
                       ),
                       MYTextField(
                         hintText: "Address",
@@ -279,74 +301,72 @@ class _SignUpState extends State<SignUp> {
                         obscuretext: false,
                         keyboard: TextInputType.text,
                       ),
-                       if(lodding)
-                      CircularProgressIndicator(
-                        backgroundColor: Colors.pink,
-                      ),
-                      if(!lodding)
-                      Button(
-                        buttoncolors: Theme.of(context).primaryColor,
-                        textcolor: Colors.white,
-                        tittle: "Signup",
-                        whenpress: () async {
-                          
-                          function();
-                          try {
-                            setState(() {
-                              lodding=true;
-                            });
-                            User user = User(
+                      if (lodding)
+                        CircularProgressIndicator(
+                          backgroundColor: Colors.pink,
+                        ),
+                      if (!lodding)
+                        Button(
+                          buttoncolors: Theme.of(context).primaryColor,
+                          textcolor: Colors.white,
+                          tittle: "Signup",
+                          whenpress: () async {
+                            function();
+                            try {
+                              setState(() {
+                                lodding = true;
+                              });
+                              User user = User(
                                 contect: this.phone.text,
                                 email: this.email.text,
                                 fullname: this.fullname.text,
                                 password: this.password.text,
                                 address: this.adress.text,
-                                gender: this.gender?'male':"Female",
-                                image: this._image, 
-                                );
-                                
-                            authResult =
-                                await _auth.createUserWithEmailAndPassword(
-                                    email: email.text, password: password.text);
+                                gender: this.gender ? 'male' : "Female",
+                                image: this._image,
+                              );
 
-                            final ref =FirebaseStorage.instance.ref().child("user_id").child(authResult.user.uid + '.jpg');
-                            await ref.putFile(_image).onComplete;
-                            final url = await ref.getDownloadURL();
-                            Firestore.instance
-                                .collection("user")
-                                .document(authResult.user.uid)
-                                .setData({
-                              "username": user.fullname,
-                              "password": user.password,
-                              "contect": user.contect,
-                              'email': user.email,
-                              "address":user.address,
-                              "gender":user.gender,
-                              "image Url":url,
-                            });
-                            
-                          } on PlatformException catch (err) {
-                            var massage =
-                                "An error occurred ,please check your credentials";
-                            if (err.message != null) {
-                              massage = err.message;
+                              authResult =
+                                  await _auth.createUserWithEmailAndPassword(
+                                      email: email.text,
+                                      password: password.text);
+                              var image=await uploadFile(_image);
+                             
+                              Firestore.instance
+                                  .collection("user")
+                                  .document(authResult.user.uid)
+                                  .setData({
+                                "username": user.fullname,
+                                "password": user.password,
+                                "contect": user.contect,
+                                'email': user.email,
+                                "userId": authResult.user.uid,
+                                "address": user.address,
+                                "gender": user.gender,
+                                "image Url": image["imageUrl"],
+                              });
+                            } on PlatformException catch (err) {
+                              var massage =
+                                  "An error occurred ,please check your credentials";
+                              if (err.message != null) {
+                                massage = err.message;
+                              }
+                              _scaffoldKey.currentState.showSnackBar(
+                                SnackBar(
+                                  content: Text(massage),
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                ),
+                              );
+                              setState(() {
+                                lodding = false;
+                              });
                             }
-                            _scaffoldKey.currentState.showSnackBar(
-                              SnackBar(
-                                content: Text(massage),
-                                backgroundColor: Theme.of(context).primaryColor,
-                              ),
-                            );
-                             setState(() {
-                              lodding=false;
+                            setState(() {
+                              lodding = false;
                             });
-                         
-                          }
-                          setState(() {
-                            lodding =false;
-                          });
-                        },
-                      ), 
+                          },
+                        ),
                     ],
                   ),
                 ),
