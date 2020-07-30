@@ -8,7 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../Model/user.dart';
-import 'package:path/path.dart' as Path; 
+import 'package:path/path.dart' as Path;
 import './login.dart';
 
 class SignUp extends StatefulWidget {
@@ -41,21 +41,19 @@ Widget alreadyAccount(context) {
 }
 
 class _SignUpState extends State<SignUp> {
-  var lodding = false;
+  bool lodding = false;
   bool gender = true;
   File _image;
 
   Future getImage() async {
-    final pickedFile =
-        await ImagePicker().getImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
 
     setState(() {
       _image = File(pickedFile.path);
     });
   }
 
-
-    Future<Map<String, String>> uploadFile(File _image) async {
+  Future<Map<String, String>> uploadFile(File _image) async {
     String _imagePath = _image.path;
 
     StorageReference storageReference = FirebaseStorage.instance
@@ -66,7 +64,7 @@ class _SignUpState extends State<SignUp> {
     final String _imageUrl = (await task.ref.getDownloadURL());
 
     Map<String, String> _downloadData = {
-      'imagePath': _imagePath,
+      'imagePath': Path.basename(_imagePath),
       'imageUrl': _imageUrl
     };
     return _downloadData;
@@ -84,7 +82,7 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController password = TextEditingController();
   final TextEditingController all = TextEditingController();
   final TextEditingController adress = TextEditingController();
-  function() {
+  void function() {
     if (_image == null) {
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
@@ -179,10 +177,67 @@ class _SignUpState extends State<SignUp> {
           backgroundColor: Theme.of(context).primaryColor,
         ),
       );
-      return;
+    } else {
+      tryCatch();
     }
   }
-  
+
+  void tryCatch() async {
+    try {
+      setState(() {
+        lodding = true;
+      });
+
+      authResult = await _auth.createUserWithEmailAndPassword(
+          email: email.text, password: password.text);
+
+      var image = await uploadFile(_image);
+
+      User user = User(
+        contect: this.phone.text,
+        email: this.email.text,
+        fullname: this.fullname.text,
+        password: this.password.text,
+        address: this.adress.text,
+        gender: this.gender ? 'male' : "Female",
+        image: image["imageUrl"],
+        userimage: image["imagePath"],
+      );
+
+      Firestore.instance
+          .collection("user")
+          .document(authResult.user.uid)
+          .setData({
+        "username": user.fullname,
+        "password": user.password,
+        "contect": user.contect,
+        'email': user.email,
+        "userId": authResult.user.uid,
+        "address": user.address,
+        "gender": user.gender,
+        "imageUrl": user.image,
+        'imagepath': user.userimage,
+      });
+    } on PlatformException catch (err) {
+      var massage = "An error occurred ,please check your credentials";
+      if (err.message != null) {
+        massage = err.message;
+      }
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text(massage),
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+      );
+      setState(() {
+        lodding = false;
+      });
+    }
+    setState(() {
+      lodding = false;
+    });
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -310,61 +365,8 @@ class _SignUpState extends State<SignUp> {
                           buttoncolors: Theme.of(context).primaryColor,
                           textcolor: Colors.white,
                           tittle: "Signup",
-                          whenpress: () async {
+                          whenpress: (){
                             function();
-                            try {
-                              setState(() {
-                                lodding = true;
-                              });
-                              User user = User(
-                                contect: this.phone.text,
-                                email: this.email.text,
-                                fullname: this.fullname.text,
-                                password: this.password.text,
-                                address: this.adress.text,
-                                gender: this.gender ? 'male' : "Female",
-                                image: this._image,
-                              );
-
-                              authResult =
-                                  await _auth.createUserWithEmailAndPassword(
-                                      email: email.text,
-                                      password: password.text);
-                              var image=await uploadFile(_image);
-                             
-                              Firestore.instance
-                                  .collection("user")
-                                  .document(authResult.user.uid)
-                                  .setData({
-                                "username": user.fullname,
-                                "password": user.password,
-                                "contect": user.contect,
-                                'email': user.email,
-                                "userId": authResult.user.uid,
-                                "address": user.address,
-                                "gender": user.gender,
-                                "image Url": image["imageUrl"],
-                              });
-                            } on PlatformException catch (err) {
-                              var massage =
-                                  "An error occurred ,please check your credentials";
-                              if (err.message != null) {
-                                massage = err.message;
-                              }
-                              _scaffoldKey.currentState.showSnackBar(
-                                SnackBar(
-                                  content: Text(massage),
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                ),
-                              );
-                              setState(() {
-                                lodding = false;
-                              });
-                            }
-                            setState(() {
-                              lodding = false;
-                            });
                           },
                         ),
                     ],

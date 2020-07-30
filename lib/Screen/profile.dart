@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Model/user.dart';
 import './homescreen.dart';
-
+import 'package:firebase_storage/firebase_storage.dart';
 import '../Widgets/mytextfield.dart';
 import '../Widgets/Button.dart';
 import 'package:image_picker/image_picker.dart';
@@ -32,6 +32,16 @@ class _ProfileState extends State<Profile> {
   bool gender = true;
   String userImage;
   bool edit = false;
+
+  Future<String> uploadFile(File _image) async {
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child('images/${classuser.userimage}');
+    StorageUploadTask uploadTask = storageReference.putFile(_image);
+    StorageTaskSnapshot task = await uploadTask.onComplete;
+    final String _imageUrl = (await task.ref.getDownloadURL());
+    return _imageUrl;
+  }
+
   Future getImage() async {
     final pickedFile = await ImagePicker().getImage(source: ImageSource.camera);
     setState(() {
@@ -43,16 +53,19 @@ class _ProfileState extends State<Profile> {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     uid = user.uid;
   }
-
+ var imageMap;
   void userDataUpdate() async {
+   _image!=null?imageMap = await uploadFile(_image):Container();
     Firestore.instance.collection("user").document(uid).updateData({
       "username": name.text,
       "email": email.text,
       "address": address.text,
       "contect": phone.text,
       "gender": gender ? "Male" : "Female",
+      "imageUrl": _image==null?classuser.image:imageMap,
     });
   }
+
   function() {
     if (name.text.isEmpty &&
         email.text.isEmpty &&
@@ -131,6 +144,7 @@ class _ProfileState extends State<Profile> {
       });
     }
   }
+
   Widget textsContainer(String text) {
     return Container(
       margin: EdgeInsets.only(top: 20),
@@ -218,7 +232,8 @@ class _ProfileState extends State<Profile> {
                   email: checkDocuments['email'],
                   fullname: checkDocuments['username'],
                   gender: checkDocuments["gender"],
-                  image: null,
+                  image: checkDocuments["imageUrl"],
+                  userimage: checkDocuments["imagepath"],
                   password: null,
                 );
                 email = TextEditingController(text: classuser.email);
@@ -329,7 +344,7 @@ class _ProfileState extends State<Profile> {
                       child: CircleAvatar(
                         maxRadius: 75,
                         backgroundImage: _image == null
-                            ? AssetImage("images/cat.png")
+                            ? NetworkImage(classuser.image)
                             : FileImage(
                                 _image), //image == null ?//:FileImage(image),
                       ),
