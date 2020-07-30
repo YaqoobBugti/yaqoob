@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:foodtastee/Provider/foodProvider.dart';
+import 'package:foodtastee/Screen/search.dart';
+import 'package:provider/provider.dart';
 import './cartscreen.dart';
 import './catagory.dart';
 import './profile.dart';
@@ -15,14 +17,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  
   Food foodpasta;
   Food foodchicken;
+  Food searchFood;
+
   var uid;
   var userImage;
 
-  // Widget stramBuilder(){
-  //   return 
-  // }
   Widget container({String image, String tittle, Function onClick, context}) {
     return Padding(
       padding: EdgeInsets.only(top: 60),
@@ -30,8 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: onClick,
         child: Container(
           margin: EdgeInsets.only(right: 10, left: 10),
-          height: 170,
-          width: 150,
+          height: 150,
+          width: 130,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10.0),
@@ -93,7 +95,81 @@ class _HomeScreenState extends State<HomeScreen> {
     uid = user.uid;
   }
 
+  Widget search() {
+    return Positioned(
+      top: 160,////////////
+      left: 20,
+      right: 20,
+      child: GestureDetector(
+        onTap: () {
+          showSearch(
+            context: context,
+            delegate: Search(),
+          );
+        },
+        child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            height: 60,
+            //width: 100,
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(10.0)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  "Search",
+                  style: TextStyle(fontSize: 20),
+                ),
+                Icon(Icons.search),
+              ],
+            )
+            // child: TextField(
+            //   decoration: InputDecoration(
+            //     suffixIcon: IconButton(
+            //       onPressed: () {
+            //         showSearch(
+            //                 context: context, delegate: Search());
+            //       },
+            //       icon: Icon(Icons.search),
+            //       color: Theme.of(context).primaryColor,
+            //     ),
+            //     hintText: 'Want to search anything',
+            //     filled: true,
+            //     fillColor: Colors.white,
+            //     enabledBorder: OutlineInputBorder(
+            //         borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            //         borderSide: BorderSide.none),
+            //     focusedBorder: OutlineInputBorder(
+            //         borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            //         borderSide: BorderSide.none),
+            //   ),
+            // ),
+            ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
+    Firestore.instance.collection("food").snapshots().forEach((element) {
+      element.documents.forEach((element) {
+        searchFood = Food(
+            ratting: element["rating"],
+            image: element["image"],
+            foodName: element["foodName"],
+            price: element["foodPrice"],
+            foodsubTittle: element["foodsubTittle"]);
+        provider.getfoodList.add(searchFood);
+        print(element['ratting']);
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    
     inputData();
     return Scaffold(
       drawer: Drawer(
@@ -226,84 +302,84 @@ class _HomeScreenState extends State<HomeScreen> {
                 ratting: snapshot.data.documents[0]['ratting'],
               );
               return StreamBuilder(
-                  stream: Firestore.instance.collection("user").snapshots(),
-                  builder: (context, snapShot) {
-                    if (snapShot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
+                stream: Firestore.instance.collection("user").snapshots(),
+                builder: (context, snapShot) {
+                  if (snapShot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  var myDocuments = snapShot.data.documents;
+                  myDocuments.forEach((checkDocument) {
+                    if (uid == checkDocument["userId"]) {
+                      userImage = checkDocument["imageUrl"];
                     }
-                    var myDocuments = snapShot.data.documents;
-                    myDocuments.forEach((checkDocument) {
-                      if (uid == checkDocument["userId"]) {
-                        userImage = checkDocument["imageUrl"];
-                      }
-                    });
+                  });
 
-                    return Stack(
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Expanded(
+                  return Stack(
+                    children: <Widget>[
+                      Column(
+                        children: <Widget>[
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
+                              color: Theme.of(context).primaryColor,
                               child: Container(
-                                width: double.infinity,
-                                color: Theme.of(context).primaryColor,
                                 child: Container(
-                                  child: Container(
-                                    margin: EdgeInsets.only(bottom: 50),
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 20),
-                                    // color: Colors.red,
-                                    child: Row(
-                                      children: <Widget>[
-                                        CircleAvatar(
-                                          maxRadius: 50,
-                                          backgroundColor: Colors.white,
-                                          child: CircleAvatar(
-                                            maxRadius: 46,
-                                            backgroundImage:
-                                                NetworkImage(userImage),
+                                  margin: EdgeInsets.only(bottom: 50),
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  // color: Colors.red,
+                                  child: Row(
+                                    children: <Widget>[
+                                      CircleAvatar(
+                                        maxRadius: 50,
+                                        backgroundColor: Colors.white,
+                                        child: CircleAvatar(
+                                          maxRadius: 46,
+                                          backgroundImage:
+                                              NetworkImage(userImage),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                            "Have you upset",
+                                            style: TextStyle(
+                                                fontSize: 22,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
                                           ),
-                                        ),
-                                        SizedBox(
-                                          width: 20,
-                                        ),
-                                        Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              "Have you upset",
-                                              style: TextStyle(
-                                                  fontSize: 22,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            SizedBox(
-                                              height: MediaQuery.of(context)
-                                                      .viewPadding
-                                                      .top *
-                                                  0.2,
-                                            ),
-                                            Text(
-                                              "stomatch?",
-                                              style: TextStyle(
-                                                  fontSize: 22,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
+                                          SizedBox(
+                                            height: MediaQuery.of(context)
+                                                    .viewPadding
+                                                    .top *
+                                                0.2,
+                                          ),
+                                          Text(
+                                            "stomatch?",
+                                            style: TextStyle(
+                                                fontSize: 22,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                            Expanded(
-                              flex: 3,
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: SingleChildScrollView(
                               child: Container(
                                 color: Color(0xfff2f2f2),
                                 width: double.infinity,
@@ -357,14 +433,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Text(
                                             "Featured",
                                             style: TextStyle(
-                                                color: Color(0xff04d4ee),
+                                                color: Theme.of(context)
+                                                    .primaryColor,
                                                 fontSize: 30,
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           Text(
                                             "View All",
                                             style: TextStyle(
-                                                color: Color(0xff04d4ee),
+                                                color: Theme.of(context)
+                                                    .primaryColor,
                                                 fontSize: 19),
                                           ),
                                         ],
@@ -448,37 +526,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                        Positioned(
-                          top: 155,
-                          left: 20,
-                          right: 20,
-                          child: Container(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                suffixIcon: Icon(
-                                  Icons.search,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                                hintText: 'Want to search anything',
-                                filled: true,
-                                fillColor: Colors.white,
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
-                                    borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10.0)),
-                                    borderSide: BorderSide.none),
-                              ),
-                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  });
+                        ],
+                      ),
+                      search(),
+                    ],
+                  );
+                },
+              );
             },
           );
         },

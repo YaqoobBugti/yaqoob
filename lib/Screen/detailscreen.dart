@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../Provider/foodProvider.dart';
+import 'package:foodtastee/Screen/cartscreen.dart';
+import 'package:provider/provider.dart';
 
 class DetailScreen extends StatefulWidget {
   final String image;
@@ -7,7 +10,7 @@ class DetailScreen extends StatefulWidget {
   final double price;
 
   DetailScreen({
-   @required this.price,
+    @required this.price,
     @required this.image,
     @required this.foodName,
     @required this.foodsubtittle,
@@ -18,11 +21,15 @@ class DetailScreen extends StatefulWidget {
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  int counting = 1;
+  int count = 1;
+  double totalPrice;
+  FoodProvider provider;
   @override
   Widget build(BuildContext context) {
+    provider = Provider.of<FoodProvider>(context);
+
     return Scaffold(
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
             Stack(
@@ -30,7 +37,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 Column(
                   children: <Widget>[
                     Container(
-                      height: 235,
+                      height: 150,
                       width: double.infinity,
                       color: Color(0xfffef6fa),
                     ),
@@ -41,7 +48,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 20),
-                      height: 381,
+                      height: 281,
                       width: double.infinity,
                       color: Colors.white,
                       child: Container(
@@ -59,9 +66,7 @@ class _DetailScreenState extends State<DetailScreen> {
                                       color: Theme.of(context).primaryColor,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                SizedBox(
-                                  height: 10,
-                                ),
+                                
                                 Text(
                                   widget.foodsubtittle,
                                   style: TextStyle(
@@ -77,7 +82,7 @@ class _DetailScreenState extends State<DetailScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
                                   Text(
-                                    '\$ ${widget.price}',
+                                    "\$${totalPrice == null ? widget.price.toString() : totalPrice}",
                                     style: TextStyle(
                                         color: Color(0xff00d2ed), fontSize: 22),
                                   ),
@@ -98,12 +103,14 @@ class _DetailScreenState extends State<DetailScreen> {
                                               ),
                                               onPressed: () {
                                                 setState(() {
-                                                  if (counting > 1) counting--;
+                                                  if (count > 1) count--;
+                                                  totalPrice =
+                                                      widget.price * count;
                                                 });
                                               }),
                                         ),
                                         Text(
-                                          "${counting.toString()}",
+                                          "${count.toString()}",
                                           style: TextStyle(
                                               color: Color(0xff00d2ed)),
                                         ),
@@ -115,7 +122,9 @@ class _DetailScreenState extends State<DetailScreen> {
                                               ),
                                               onPressed: () {
                                                 setState(() {
-                                                  counting++;
+                                                  count++;
+                                                  totalPrice =
+                                                      widget.price * count;
                                                 });
                                               }),
                                         ),
@@ -241,7 +250,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                     Container(
                       height: 60,
-                      width: 400,
+                      width: double.infinity,
                       child: RaisedButton(
                         textColor: Colors.white,
                         color: Theme.of(context).primaryColor,
@@ -250,7 +259,20 @@ class _DetailScreenState extends State<DetailScreen> {
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          provider.addFoodCart(
+                            widget.foodName,
+                            widget.foodsubtittle,
+                            count,
+                            widget.image,
+                            totalPrice == null ? widget.price : totalPrice,
+                          );
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => CartScreen(),
+                            ),
+                          );
+                        },
                         shape: new RoundedRectangleBorder(
                           borderRadius: new BorderRadius.circular(10.0),
                         ),
@@ -259,9 +281,9 @@ class _DetailScreenState extends State<DetailScreen> {
                   ],
                 ),
                 Padding(
-                    padding: const EdgeInsets.only(left: 80, top: 45),
+                    padding: const EdgeInsets.only(left: 90, top: 60),
                     child: CircleAvatar(
-                      maxRadius: 130,
+                      maxRadius: 90,
                       backgroundImage: NetworkImage(widget.image),
                     ))
               ],
