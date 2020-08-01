@@ -30,15 +30,13 @@ class Search extends SearchDelegate<Food> {
   @override
   Widget buildResults(BuildContext context) {
     FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
-    var search = provider.getMyFoodList;
-    final result =
-        search.where((s) => s.foodName.toLowerCase().contains(query));
+   List<Food>_searchfoodList=provider.search(query);
 
     return GridView.count(
         childAspectRatio: 0.87,
         crossAxisCount: 2,
         padding: EdgeInsets.only(top: 10),
-        children: result
+        children: _searchfoodList
             .map<Widget>((e) => CircleContainer(
                   context: context,
                   image: e.image,
@@ -54,9 +52,7 @@ class Search extends SearchDelegate<Food> {
   @override
   Widget buildSuggestions(BuildContext context) {
     FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
-    var search = provider.getMyFoodList;
-    final result =
-        search.where((s) => s.foodName.toLowerCase().contains(query));
+   List<Food>_searchfoodList=provider.search(query);
 
     return GridView.count(
         crossAxisCount: 2,
@@ -64,7 +60,7 @@ class Search extends SearchDelegate<Food> {
         crossAxisSpacing: 0.1,
         mainAxisSpacing: 2,
         padding: EdgeInsets.only(top: 10),
-        children: result
+        children: _searchfoodList
             .map<Widget>((e) => CircleContainer(
                   context: context,
                   image: e.image,

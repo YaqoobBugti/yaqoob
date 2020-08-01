@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodtastee/Provider/foodProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import './homescreen.dart';
 import "../Widgets/Button.dart";
 
@@ -8,93 +9,95 @@ class CartScreen extends StatefulWidget {
   @override
   _CartScreenState createState() => _CartScreenState();
 }
-
 class _CartScreenState extends State<CartScreen> {
   double total = 0.0;
   FoodProvider provider;
+
   Widget container(BuildContext context, int myIndex) {
     var allFoodCart = provider.getFoodCart;
-
     return Dismissible(
       key: UniqueKey(),
       onDismissed: (rovider) {
         setState(() {
           provider.delete(myIndex);
-          total -=allFoodCart[myIndex].foodPrice;
-          // var pricepeice = provider.foodcardlist;
-          // pricepeice.forEach((element) {
-          //   total -= element.foodPrice;
-          // });
+          total -= allFoodCart[myIndex].foodPrice;
         });
       },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        height: 75,
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            color: Color(0xffffffff),
-            borderRadius: BorderRadius.circular(10.0)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              height: double.infinity,
-              width: 130,
-              // color: Colors.yellow,
-              child: Row(
-                children: <Widget>[
-                  CircleAvatar(
-                    maxRadius: 30,
-                    backgroundImage:
-                        NetworkImage(allFoodCart[myIndex].foodImage),
-                  ),
-                  SizedBox(
-                    width: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5,),
-                    child: Text(
-                      "${allFoodCart[myIndex].foodQuantity.toString()}x",
-                      style: TextStyle(color: Colors.grey, fontSize: 20),
+      child: GestureDetector(
+        onTap: (){
+          Navigator.of(context).pop();
+        },
+          child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          height: 75,
+          decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              color: Color(0xffffffff),
+              borderRadius: BorderRadius.circular(10.0)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                height: double.infinity,
+                width: 130,
+                // color: Colors.yellow,
+                child: Row(
+                  children: <Widget>[
+                    CircleAvatar(
+                      maxRadius: 30,
+                      backgroundImage:
+                          NetworkImage(allFoodCart[myIndex].foodImage),
                     ),
-                  )
-                ],
-              ),
-            ),
-            Container(
-              height: double.infinity,
-              width: 120,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Text(
-                    allFoodCart[myIndex].foodName,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  Text(allFoodCart[myIndex].foodType),
-                ],
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.only(),
-              height: 50,
-              width: 80,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Text(
-                    "\$${allFoodCart[myIndex].foodPrice}",
-                    style: TextStyle(
-                      color: Color(0xff04d4ee),
-                      fontWeight: FontWeight.bold,
+                    SizedBox(
+                      width: 30,
                     ),
-                  )
-                ],
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 5,
+                      ),
+                      child: Text(
+                        "${allFoodCart[myIndex].foodQuantity.toString()}x",
+                        style: TextStyle(color: Colors.grey, fontSize: 20),
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
+              Container(
+                height: double.infinity,
+                width: 120,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Text(
+                      allFoodCart[myIndex].foodName,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    Text(allFoodCart[myIndex].foodType),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.only(),
+                height: 50,
+                width: 80,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Text(
+                      "\$${allFoodCart[myIndex].foodPrice}",
+                      style: TextStyle(
+                        color: Color(0xff04d4ee),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -179,8 +182,18 @@ class _CartScreenState extends State<CartScreen> {
                   Button(
                     buttoncolors: Colors.white,
                     textcolor: Theme.of(context).primaryColor,
-                    tittle: "Submit",
-                    whenpress: () {},
+                    tittle: "Procede",
+                    whenpress: () {
+                      Alert(
+                        style:AlertStyle(
+                        animationType: AnimationType.shrink
+                        ),
+                        context: context,
+                        title: "Odar is Compleated",
+                       // desc: "Flutter is better with RFlutter Alert.",
+                        image: Image.asset("images/success-png.png"),
+                      ).show();
+                    },
                   ),
                 ],
               ),

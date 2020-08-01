@@ -149,27 +149,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
-    Firestore.instance.collection("food").snapshots().forEach((element) {
-      element.documents.forEach((element) {
-        searchFood = Food(
-            ratting: element["rating"],
-            image: element["image"],
-            foodName: element["foodName"],
-            price: element["foodPrice"],
-            foodsubTittle: element["foodsubTittle"]);
-        provider.getfoodList.add(searchFood);
-        print(element['ratting']);
-      });
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
+  //   Firestore.instance.collection("food").snapshots().forEach((element) {
+  //     element.documents.forEach((element) {
+  //       searchFood = Food(
+  //           ratting: element["rating"],
+  //           image: element["image"],
+  //           foodName: element["foodName"],
+  //           price: element["foodPrice"],
+  //           foodsubTittle: element["foodsubTittle"]);
+  //       provider.getfoodList.add(searchFood);
+  //       print(element['ratting']);
+  //     });
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    
+    FoodProvider provider = Provider.of<FoodProvider>(context, listen: false);
+    provider.getFoodList();
     inputData();
     return Scaffold(
       drawer: Drawer(
